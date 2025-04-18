@@ -1,0 +1,11 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #5c94fc;
+  }
+  
+  canvas {
+    display: block;
+    background: linear-gradient(#5c94fc, #ffffff);
+  }
+  
