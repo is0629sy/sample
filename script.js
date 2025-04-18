@@ -25,10 +25,11 @@ const player = {
 
 // ===== 各種設定 =====
 const groundHeight = 100;
-const jumpableGap = 250; // 超えられる穴の幅
-const platformSpacing = 300;
+const minGap = 50; // プレイヤーの幅と同じ最小幅
+const maxGap = 200; // 二段ジャンプで超えられる最大幅
+const platformSpacing = 250;
 const scrollSpeed = 5;
-const goalPosition = 7500; // ゴール位置（25個のプラットフォームの最後付近）
+const goalPosition = 6250; // プラットフォーム間隔変更に合わせて調整
 
 const keys = {
   space: false,
@@ -54,19 +55,22 @@ function setupLevel() {
   createPlatform(groundPlatforms, 0, canvas.height - groundHeight, 300, groundHeight);
 
   // 地面と穴の生成（25個）
+  let lastPlatformX = 300; // 最初の地面の終点
   for (let i = 1; i < 25; i++) {
-    const x = i * platformSpacing;
-    if (Math.random() > 0.3) {
-      createPlatform(groundPlatforms, x, canvas.height - groundHeight, platformSpacing, groundHeight);
-      // たまに障害物
-      if (Math.random() < 0.2) {
-        obstacles.push({
-          x: x + 100,
-          y: canvas.height - groundHeight - 40,
-          width: 30,
-          height: 40,
-        });
-      }
+    // minGapからmaxGapまでのランダムな穴の幅を生成
+    const gap = minGap + Math.random() * (maxGap - minGap);
+    const x = lastPlatformX + gap;
+    createPlatform(groundPlatforms, x, canvas.height - groundHeight, platformSpacing, groundHeight);
+    lastPlatformX = x + platformSpacing;
+    
+    // たまに障害物
+    if (Math.random() < 0.2) {
+      obstacles.push({
+        x: x + 100,
+        y: canvas.height - groundHeight - 40,
+        width: 30,
+        height: 40,
+      });
     }
   }
 
