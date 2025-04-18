@@ -7,7 +7,8 @@ canvas.height = window.innerHeight;
 // ===== ゲームステート管理 =====
 let gameStarted = false;
 let gameOver = false;
-let gameCleared = false;
+let score = 0;
+let highScore = 0;
 
 // ===== プレイヤー情報 =====
 const player = {
@@ -27,9 +28,10 @@ const player = {
 const groundHeight = 100;
 const minGap = 50; // プレイヤーの幅と同じ最小幅
 const maxGap = 200; // 二段ジャンプで超えられる最大幅
+const minPlatformLength = 200; // 最小プラットフォーム長
+const maxPlatformLength = 400; // 最大プラットフォーム長
 const platformSpacing = 250;
 const scrollSpeed = 5;
-const goalPosition = 6250; // プラットフォーム間隔変更に合わせて調整
 
 const keys = {
   space: false,
@@ -50,18 +52,20 @@ function setupLevel() {
   groundPlatforms.length = 0;
   floatingPlatforms.length = 0;
   obstacles.length = 0;
+  score = 0;
 
   // 最初の地面（スタート地点）
   createPlatform(groundPlatforms, 0, canvas.height - groundHeight, 300, groundHeight);
 
-  // 地面と穴の生成（25個）
+  // 最初の地面と穴の生成（5個）
   let lastPlatformX = 300; // 最初の地面の終点
-  for (let i = 1; i < 25; i++) {
+  for (let i = 1; i < 5; i++) {
     // minGapからmaxGapまでのランダムな穴の幅を生成
     const gap = minGap + Math.random() * (maxGap - minGap);
     const x = lastPlatformX + gap;
-    createPlatform(groundPlatforms, x, canvas.height - groundHeight, platformSpacing, groundHeight);
-    lastPlatformX = x + platformSpacing;
+    const platformLength = minPlatformLength + Math.random() * (maxPlatformLength - minPlatformLength);
+    createPlatform(groundPlatforms, x, canvas.height - groundHeight, platformLength, groundHeight);
+    lastPlatformX = x + platformLength;
     
     // たまに障害物
     if (Math.random() < 0.2) {
@@ -73,16 +77,44 @@ function setupLevel() {
       });
     }
   }
+}
 
-  // ゴール地点の地面を必ず生成
-  createPlatform(groundPlatforms, goalPosition - 300, canvas.height - groundHeight, 600, groundHeight);
+function generateNewPlatform() {
+  // 画面外に出たプラットフォームを削除
+  groundPlatforms.forEach((platform, index) => {
+    if (platform.x + platform.width < scrollX) {
+      groundPlatforms.splice(index, 1);
+    }
+  });
 
-  // 浮遊する足場（ジャンプ or 2段ジャンプで届く）
-  floatingPlatforms.push(
-    { x: 900, y: canvas.height - 250, width: 100, height: 20 },      // 普通のジャンプで届く
-    { x: 1300, y: canvas.height - 350, width: 100, height: 20 },     // 2段ジャンプで届く
-    { x: 1700, y: canvas.height - 300, width: 100, height: 20 }      // 少し下、ジャンプで届く
-  );
+  // 画面外に出た障害物を削除
+  obstacles.forEach((obs, index) => {
+    if (obs.x + obs.width < scrollX) {
+      obstacles.splice(index, 1);
+    }
+  });
+
+  // 最後のプラットフォームの位置を取得
+  const lastPlatform = groundPlatforms[groundPlatforms.length - 1];
+  const lastPlatformX = lastPlatform ? lastPlatform.x + lastPlatform.width : 0;
+
+  // 新しいプラットフォームを生成
+  if (lastPlatformX - scrollX < canvas.width + maxPlatformLength) {
+    const gap = minGap + Math.random() * (maxGap - minGap);
+    const x = lastPlatformX + gap;
+    const platformLength = minPlatformLength + Math.random() * (maxPlatformLength - minPlatformLength);
+    createPlatform(groundPlatforms, x, canvas.height - groundHeight, platformLength, groundHeight);
+    
+    // たまに障害物
+    if (Math.random() < 0.2) {
+      obstacles.push({
+        x: x + 100,
+        y: canvas.height - groundHeight - 40,
+        width: 30,
+        height: 40,
+      });
+    }
+  }
 }
 
 // ===== 入力処理 =====
@@ -91,7 +123,14 @@ window.addEventListener('keydown', (e) => {
     if (!gameStarted) {
       gameStarted = true;
       setupLevel();
-    } else if (!gameOver && !gameCleared && player.jumpCount < 2) {
+    } else if (gameOver) {
+      // ゲームオーバー時にスペースキーを押したらリセット
+      gameOver = false;
+      gameStarted = false;
+      player.y = canvas.height - 150;
+      player.dy = 0;
+      scrollX = 0;
+    } else if (!gameOver && player.jumpCount < 2) {
       player.dy = player.jumpPower;
       player.grounded = false;
       player.jumpCount++;
@@ -116,7 +155,7 @@ function isColliding(a, b) {
 
 // ===== ゲーム更新処理 =====
 function update() {
-  if (!gameStarted || gameOver || gameCleared) return;
+  if (!gameStarted || gameOver) return;
 
   player.dy += player.gravity;
   player.y += player.dy;
@@ -152,20 +191,26 @@ function update() {
     const shiftedObs = { ...obs, x: obs.x - scrollX };
     if (isColliding(player, shiftedObs)) {
       gameOver = true;
+      if (score > highScore) {
+        highScore = score;
+      }
     }
   }
 
   // 穴に落ちたらゲームオーバー
   if (player.y > canvas.height) {
     gameOver = true;
+    if (score > highScore) {
+      highScore = score;
+    }
   }
 
-  // ゴール判定
-  if (scrollX >= goalPosition) {
-    gameCleared = true;
-  }
-
+  // スコア更新（進んだ距離に比例）
+  score = Math.floor(scrollX / 10);
   scrollX += scrollSpeed;
+
+  // 新しいプラットフォームの生成
+  generateNewPlatform();
 }
 
 // ===== 描画処理 =====
@@ -183,15 +228,18 @@ function draw() {
     ctx.fillStyle = 'black';
     ctx.font = '48px sans-serif';
     ctx.fillText('ゲームオーバー', canvas.width / 2 - 130, canvas.height / 2);
+    ctx.font = '24px sans-serif';
+    ctx.fillText(`スコア: ${score}`, canvas.width / 2 - 50, canvas.height / 2 + 50);
+    ctx.fillText(`ハイスコア: ${highScore}`, canvas.width / 2 - 70, canvas.height / 2 + 100);
+    ctx.fillText('スペースキーで再スタート', canvas.width / 2 - 200, canvas.height / 2 + 150);
     return;
   }
 
-  if (gameCleared) {
-    ctx.fillStyle = 'black';
-    ctx.font = '48px sans-serif';
-    ctx.fillText('ゲームクリア！', canvas.width / 2 - 130, canvas.height / 2);
-    return;
-  }
+  // スコア表示
+  ctx.fillStyle = 'black';
+  ctx.font = '24px sans-serif';
+  ctx.fillText(`スコア: ${score}`, 20, 30);
+  ctx.fillText(`ハイスコア: ${highScore}`, 20, 60);
 
   // 地面
   groundPlatforms.forEach(platform => {
@@ -210,19 +258,6 @@ function draw() {
     ctx.fillStyle = 'gray';
     ctx.fillRect(obs.x - scrollX, obs.y, obs.width, obs.height);
   });
-
-  // ゴール地点の旗
-  const flagX = goalPosition - scrollX;
-  if (flagX > 0 && flagX < canvas.width) {
-    ctx.fillStyle = 'yellow';
-    ctx.fillRect(flagX, canvas.height - groundHeight - 100, 10, 100);
-    ctx.fillStyle = 'red';
-    ctx.beginPath();
-    ctx.moveTo(flagX + 10, canvas.height - groundHeight - 100);
-    ctx.lineTo(flagX + 50, canvas.height - groundHeight - 80);
-    ctx.lineTo(flagX + 10, canvas.height - groundHeight - 60);
-    ctx.fill();
-  }
 
   // プレイヤー
   ctx.fillStyle = player.color;
