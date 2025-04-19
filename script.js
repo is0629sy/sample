@@ -4,6 +4,13 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+// 画面サイズ変更時のリサイズ処理
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  player.y = canvas.height - 150;
+});
+
 // ===== ゲームステート管理 =====
 let gameStarted = false;
 let gameOver = false;
@@ -141,6 +148,32 @@ window.addEventListener('keydown', (e) => {
 
 window.addEventListener('keyup', (e) => {
   if (e.code === 'Space') keys.space = false;
+});
+
+// ===== タッチ操作の実装 =====
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault(); // デフォルトのタッチ動作を防止
+  if (!gameStarted) {
+    gameStarted = true;
+    setupLevel();
+  } else if (gameOver) {
+    // ゲームオーバー時にタップしたらリセット
+    gameOver = false;
+    gameStarted = false;
+    player.y = canvas.height - 150;
+    player.dy = 0;
+    scrollX = 0;
+  } else if (!gameOver && player.jumpCount < 2) {
+    player.dy = player.jumpPower;
+    player.grounded = false;
+    player.jumpCount++;
+  }
+  keys.space = true;
+});
+
+canvas.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  keys.space = false;
 });
 
 // ===== 衝突判定 =====
