@@ -38,7 +38,9 @@ const maxGap = 200; // 二段ジャンプで超えられる最大幅
 const minPlatformLength = 200; // 最小プラットフォーム長
 const maxPlatformLength = 400; // 最大プラットフォーム長
 const platformSpacing = 250;
-const scrollSpeed = 5;
+const baseScrollSpeed = 5; // 基本のスクロール速度
+const maxScrollSpeed = 15; // 最大スクロール速度
+const speedIncreaseInterval = 200; // スコアがこの値ごとに速度が上がる（100から200に変更）
 const obstacleProbability = 0.4;
 const floatingPlatformProbability = 0.35; // 浮遊する足場の生成確率を35%に下げる
 const floatingPlatformWidth = 150;
@@ -357,6 +359,10 @@ function isColliding(a, b) {
 // ===== ゲーム更新処理 =====
 function update() {
   if (!gameStarted || gameOver) return;
+
+  // スコアに応じてスクロール速度を更新
+  const speedMultiplier = 1 + Math.min(Math.floor(score / speedIncreaseInterval) * 0.1, (maxScrollSpeed - baseScrollSpeed) / baseScrollSpeed);
+  scrollSpeed = baseScrollSpeed * speedMultiplier;
 
   player.dy += player.gravity;
   player.y += player.dy;
