@@ -39,6 +39,10 @@ const minPlatformLength = 200; // 最小プラットフォーム長
 const maxPlatformLength = 400; // 最大プラットフォーム長
 const platformSpacing = 250;
 const scrollSpeed = 5;
+const obstacleProbability = 0.4;
+const floatingPlatformProbability = 0.35; // 浮遊する足場の生成確率を35%に下げる
+const floatingPlatformWidth = 150;
+const floatingPlatformHeight = 20;
 
 const keys = {
   space: false,
@@ -74,14 +78,33 @@ function setupLevel() {
     createPlatform(groundPlatforms, x, canvas.height - groundHeight, platformLength, groundHeight);
     lastPlatformX = x + platformLength;
     
-    // たまに障害物
-    if (Math.random() < 0.2) {
-      obstacles.push({
-        x: x + 100,
-        y: canvas.height - groundHeight - 40,
-        width: 30,
-        height: 40,
-      });
+    // 障害物の生成
+    // 地面の長さに応じて複数の障害物を生成
+    const obstacleCount = Math.floor(platformLength / 150); // 150pxごとに障害物を生成
+    for (let i = 0; i < obstacleCount; i++) {
+      if (Math.random() < obstacleProbability) {
+        const obstacleX = x + 75 + (i * 150); // 150px間隔で配置
+        obstacles.push({
+          x: obstacleX,
+          y: canvas.height - groundHeight - 40,
+          width: 30,
+          height: 40,
+        });
+      }
+    }
+
+    // 浮遊する足場の生成（地面の上と穴の上）
+    if (Math.random() < floatingPlatformProbability) {
+      const floatingY = canvas.height - groundHeight - 150 - Math.random() * 100;
+      // 地面の上に生成
+      createPlatform(floatingPlatforms, x + 75, floatingY, floatingPlatformWidth, floatingPlatformHeight);
+    }
+
+    // 穴の上にも浮遊する足場を生成
+    if (Math.random() < floatingPlatformProbability) {
+      const floatingY = canvas.height - groundHeight - 150 - Math.random() * 100;
+      // 穴の上に生成（最後の地面の終点から次の地面の開始位置までの間）
+      createPlatform(floatingPlatforms, lastPlatformX + 75, floatingY, floatingPlatformWidth, floatingPlatformHeight);
     }
   }
 }
@@ -91,6 +114,13 @@ function generateNewPlatform() {
   groundPlatforms.forEach((platform, index) => {
     if (platform.x + platform.width < scrollX) {
       groundPlatforms.splice(index, 1);
+    }
+  });
+
+  // 画面外に出た浮遊足場を削除
+  floatingPlatforms.forEach((platform, index) => {
+    if (platform.x + platform.width < scrollX) {
+      floatingPlatforms.splice(index, 1);
     }
   });
 
@@ -112,14 +142,33 @@ function generateNewPlatform() {
     const platformLength = minPlatformLength + Math.random() * (maxPlatformLength - minPlatformLength);
     createPlatform(groundPlatforms, x, canvas.height - groundHeight, platformLength, groundHeight);
     
-    // たまに障害物
-    if (Math.random() < 0.2) {
-      obstacles.push({
-        x: x + 100,
-        y: canvas.height - groundHeight - 40,
-        width: 30,
-        height: 40,
-      });
+    // 障害物の生成
+    // 地面の長さに応じて複数の障害物を生成
+    const obstacleCount = Math.floor(platformLength / 150); // 150pxごとに障害物を生成
+    for (let i = 0; i < obstacleCount; i++) {
+      if (Math.random() < obstacleProbability) {
+        const obstacleX = x + 75 + (i * 150); // 150px間隔で配置
+        obstacles.push({
+          x: obstacleX,
+          y: canvas.height - groundHeight - 40,
+          width: 30,
+          height: 40,
+        });
+      }
+    }
+
+    // 浮遊する足場の生成（地面の上と穴の上）
+    if (Math.random() < floatingPlatformProbability) {
+      const floatingY = canvas.height - groundHeight - 150 - Math.random() * 100;
+      // 地面の上に生成
+      createPlatform(floatingPlatforms, x + 75, floatingY, floatingPlatformWidth, floatingPlatformHeight);
+    }
+
+    // 穴の上にも浮遊する足場を生成
+    if (Math.random() < floatingPlatformProbability) {
+      const floatingY = canvas.height - groundHeight - 150 - Math.random() * 100;
+      // 穴の上に生成（最後の地面の終点から次の地面の開始位置までの間）
+      createPlatform(floatingPlatforms, lastPlatformX + 75, floatingY, floatingPlatformWidth, floatingPlatformHeight);
     }
   }
 }
