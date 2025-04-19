@@ -44,6 +44,9 @@ const floatingPlatformProbability = 0.35; // 浮遊する足場の生成確率�
 const floatingPlatformWidth = 150;
 const floatingPlatformHeight = 20;
 
+// 浮遊する足場の最小距離
+const minFloatingPlatformDistance = 300; // 浮遊する足場同士の最小距離
+
 const keys = {
   space: false,
 };
@@ -109,6 +112,32 @@ function setupLevel() {
   }
 }
 
+// 浮遊する足場の重なりと距離をチェックする関数
+function isOverlappingOrTooClose(newPlatform, existingPlatforms) {
+  return existingPlatforms.some(platform => {
+    // 重なりチェック
+    const isOverlapping = (
+      newPlatform.x < platform.x + platform.width &&
+      newPlatform.x + newPlatform.width > platform.x &&
+      newPlatform.y < platform.y + platform.height &&
+      newPlatform.y + newPlatform.height > platform.y
+    );
+
+    // 距離チェック
+    const centerX1 = newPlatform.x + newPlatform.width / 2;
+    const centerY1 = newPlatform.y + newPlatform.height / 2;
+    const centerX2 = platform.x + platform.width / 2;
+    const centerY2 = platform.y + platform.height / 2;
+    
+    const distance = Math.sqrt(
+      Math.pow(centerX2 - centerX1, 2) + 
+      Math.pow(centerY2 - centerY1, 2)
+    );
+
+    return isOverlapping || distance < minFloatingPlatformDistance;
+  });
+}
+
 function generateNewPlatform() {
   // 画面外に出たプラットフォームを削除
   groundPlatforms.forEach((platform, index) => {
@@ -160,15 +189,33 @@ function generateNewPlatform() {
     // 浮遊する足場の生成（地面の上と穴の上）
     if (Math.random() < floatingPlatformProbability) {
       const floatingY = canvas.height - groundHeight - 150 - Math.random() * 100;
-      // 地面の上に生成
-      createPlatform(floatingPlatforms, x + 75, floatingY, floatingPlatformWidth, floatingPlatformHeight);
+      const newPlatform = {
+        x: x + 75,
+        y: floatingY,
+        width: floatingPlatformWidth,
+        height: floatingPlatformHeight
+      };
+      
+      // 重なりと距離チェック
+      if (!isOverlappingOrTooClose(newPlatform, floatingPlatforms)) {
+        createPlatform(floatingPlatforms, newPlatform.x, newPlatform.y, newPlatform.width, newPlatform.height);
+      }
     }
 
     // 穴の上にも浮遊する足場を生成
     if (Math.random() < floatingPlatformProbability) {
       const floatingY = canvas.height - groundHeight - 150 - Math.random() * 100;
-      // 穴の上に生成（最後の地面の終点から次の地面の開始位置までの間）
-      createPlatform(floatingPlatforms, lastPlatformX + 75, floatingY, floatingPlatformWidth, floatingPlatformHeight);
+      const newPlatform = {
+        x: lastPlatformX + 75,
+        y: floatingY,
+        width: floatingPlatformWidth,
+        height: floatingPlatformHeight
+      };
+      
+      // 重なりと距離チェック
+      if (!isOverlappingOrTooClose(newPlatform, floatingPlatforms)) {
+        createPlatform(floatingPlatforms, newPlatform.x, newPlatform.y, newPlatform.width, newPlatform.height);
+      }
     }
   }
 }
