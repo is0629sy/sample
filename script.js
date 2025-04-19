@@ -76,7 +76,40 @@ const obstacles = [];
 
 // ===== プラットフォーム生成関数 =====
 function createPlatform(arr, x, y, width, height) {
-  arr.push({ x, y, width, height });
+  // 木目のパターンを生成
+  const woodPattern = [];
+  for (let i = 0; i < width; i += 20 + Math.random() * 30) {
+    // 左右の余白を広く取る
+    const margin = 20; // 左右の余白
+    
+    woodPattern.push({
+      x: i,
+      startY: Math.random() * 10,
+      endY: height - Math.random() * 10,
+      controlX: i + (Math.random() * 20 - 10),
+      controlY: (height / 2) + (Math.random() * 20 - 10),
+      lineWidth: 0.5 + Math.random() * 2,
+      margin: margin
+    });
+  }
+  
+  // 濃淡のパターンを生成
+  const shadePattern = [];
+  for (let i = 0; i < width; i += 50 + Math.random() * 50) {
+    // 左右の余白を広く取る
+    const margin = 20; // 左右の余白
+    
+    shadePattern.push({
+      x: i,
+      startY: Math.random() * height,
+      endY: Math.random() * height,
+      opacity: 0.3 + Math.random() * 0.3,
+      lineWidth: 1 + Math.random() * 2,
+      margin: margin
+    });
+  }
+  
+  arr.push({ x, y, width, height, woodPattern, shadePattern });
 }
 
 // ===== 初期化関数 =====
@@ -479,8 +512,42 @@ function draw() {
 
   // 地面
   groundPlatforms.forEach(platform => {
-    ctx.fillStyle = 'green';
+    // 地面のベース（薄い茶色）
+    ctx.fillStyle = '#D2B48C';
     ctx.fillRect(platform.x - scrollX, platform.y, platform.width, platform.height);
+    
+    // 木目の模様
+    ctx.strokeStyle = '#654321';
+    
+    // 保存された木目のパターンを描画
+    platform.woodPattern.forEach(pattern => {
+      // 左右の余白を考慮して描画
+      if (pattern.x >= pattern.margin && pattern.x <= platform.width - pattern.margin) {
+        ctx.beginPath();
+        ctx.moveTo(platform.x - scrollX + pattern.x, platform.y + pattern.startY);
+        ctx.quadraticCurveTo(
+          platform.x - scrollX + pattern.controlX,
+          platform.y + pattern.controlY,
+          platform.x - scrollX + pattern.x,
+          platform.y + pattern.endY
+        );
+        ctx.lineWidth = pattern.lineWidth;
+        ctx.stroke();
+      }
+    });
+    
+    // 保存された濃淡のパターンを描画
+    platform.shadePattern.forEach(pattern => {
+      // 左右の余白を考慮して描画
+      if (pattern.x >= pattern.margin && pattern.x <= platform.width - pattern.margin) {
+        ctx.beginPath();
+        ctx.moveTo(platform.x - scrollX + pattern.x, platform.y + pattern.startY);
+        ctx.lineTo(platform.x - scrollX + pattern.x, platform.y + pattern.endY);
+        ctx.strokeStyle = `rgba(50, 25, 0, ${pattern.opacity})`;
+        ctx.lineWidth = pattern.lineWidth;
+        ctx.stroke();
+      }
+    });
   });
 
   // 浮遊する足場
