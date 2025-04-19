@@ -9,6 +9,7 @@ window.addEventListener('resize', () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   player.y = canvas.height - 150;
+  player.x = window.innerWidth <= 768 ? 50 : 100; // リサイズ時もスマートフォン表示を考慮
 });
 
 // ===== ゲームステート管理 =====
@@ -19,7 +20,7 @@ let highScore = 0;
 
 // ===== プレイヤー情報 =====
 const player = {
-  x: 100,
+  x: window.innerWidth <= 768 ? 50 : 100, // スマートフォン表示時は左にずらす
   y: canvas.height - 150,
   width: 75,
   height: 75,
