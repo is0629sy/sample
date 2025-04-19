@@ -1,11 +1,32 @@
 body {
     margin: 0;
+    padding: 0;
     overflow: hidden;
-    background-color: #5c94fc;
-  }
-  
-  canvas {
-    display: block;
     background: linear-gradient(to bottom, #fff000, #d0f0a0, #c0f8ff);
-  }
+}
+
+body.high-score {
+    background: linear-gradient(to bottom, #3d5a80, #7b88c4, #fbb9a9, #f58c42);
+}
+
+#gradientBackground {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background: linear-gradient(to bottom, #3d5a80, #7b88c4, #fbb9a9, #f58c42);
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+#gradientBackground.show {
+    opacity: 1;
+}
+
+canvas {
+    display: block;
+    background-color: transparent;
+}
   

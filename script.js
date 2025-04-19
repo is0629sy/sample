@@ -414,6 +414,8 @@ function update() {
     groundPlatforms.forEach(platform => {
       platform.isGrass = true;
     });
+    // 背景を変更
+    document.body.classList.add('high-score');
   }
 
   // スクロール速度に応じてアニメーション速度を更新
@@ -595,3 +597,19 @@ function loop() {
 }
 
 loop();
+
+// ゲームの初期化
+function init() {
+    // 背景を初期状態に戻す
+    document.body.classList.remove('high-score');
+    
+    // その他の初期化処理
+    // ... existing code ...
+}
+
+// ゲーム開始時の処理
+function startGame() {
+    init();
+    gameStarted = true;
+    // ... existing code ...
+}
