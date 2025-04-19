@@ -21,15 +21,25 @@ let highScore = 0;
 const player = {
   x: 100,
   y: canvas.height - 150,
-  width: 50,
-  height: 50,
+  width: 75,
+  height: 75,
   color: 'red',
   dy: 0,
   gravity: 1,
   jumpPower: -18,
   grounded: false,
   jumpCount: 0,
+  images: [new Image(), new Image(), new Image()],
+  currentImageIndex: 0,
+  animationFrame: 0,
+  baseAnimationSpeed: 10,
+  minAnimationSpeed: 5,
 };
+
+// プレイヤー画像の読み込み
+player.images[0].src = 'img/walk.png';
+player.images[1].src = 'img/walk2.png';
+player.images[2].src = 'img/jamp.png';
 
 // ===== 各種設定 =====
 const groundHeight = 100;
@@ -364,8 +374,27 @@ function update() {
   const speedMultiplier = 1 + Math.min(Math.floor(score / speedIncreaseInterval) * 0.1, (maxScrollSpeed - baseScrollSpeed) / baseScrollSpeed);
   scrollSpeed = baseScrollSpeed * speedMultiplier;
 
+  // スクロール速度に応じてアニメーション速度を更新
+  const animationSpeedRange = player.baseAnimationSpeed - player.minAnimationSpeed;
+  const currentAnimationSpeed = Math.max(
+    player.minAnimationSpeed,
+    player.baseAnimationSpeed - (speedMultiplier - 1) * (animationSpeedRange / ((maxScrollSpeed - baseScrollSpeed) / baseScrollSpeed))
+  );
+
   player.dy += player.gravity;
   player.y += player.dy;
+
+  // アニメーション更新
+  if (player.grounded) {
+    player.animationFrame++;
+    if (player.animationFrame >= currentAnimationSpeed) {
+      player.animationFrame = 0;
+      player.currentImageIndex = (player.currentImageIndex + 1) % 2;
+    }
+  } else {
+    player.animationFrame = 0;
+    player.currentImageIndex = 2;
+  }
 
   player.grounded = false;
 
@@ -466,8 +495,14 @@ function draw() {
   });
 
   // プレイヤー
-  ctx.fillStyle = player.color;
-  ctx.fillRect(player.x, player.y, player.width, player.height);
+  const currentImage = player.images[player.currentImageIndex];
+  if (currentImage.complete) {
+    ctx.drawImage(currentImage, player.x, player.y, player.width, player.height);
+  } else {
+    // 画像が読み込まれていない場合は赤い四角形を表示
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+  }
 }
 
 // ===== ゲームループ =====
