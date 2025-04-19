@@ -408,6 +408,14 @@ function update() {
   const speedMultiplier = 1 + Math.min(Math.floor(score / speedIncreaseInterval) * 0.1, (maxScrollSpeed - baseScrollSpeed) / baseScrollSpeed);
   scrollSpeed = baseScrollSpeed * speedMultiplier;
 
+  // スコアが1000を超えた時の処理
+  if (score > 1000) {
+    // 地面を草むらに変更
+    groundPlatforms.forEach(platform => {
+      platform.isGrass = true;
+    });
+  }
+
   // スクロール速度に応じてアニメーション速度を更新
   const animationSpeedRange = player.baseAnimationSpeed - player.minAnimationSpeed;
   const currentAnimationSpeed = Math.max(
@@ -512,42 +520,48 @@ function draw() {
 
   // 地面
   groundPlatforms.forEach(platform => {
-    // 地面のベース（薄い茶色）
-    ctx.fillStyle = '#D2B48C';
-    ctx.fillRect(platform.x - scrollX, platform.y, platform.width, platform.height);
-    
-    // 木目の模様
-    ctx.strokeStyle = '#654321';
-    
-    // 保存された木目のパターンを描画
-    platform.woodPattern.forEach(pattern => {
-      // 左右の余白を考慮して描画
-      if (pattern.x >= pattern.margin && pattern.x <= platform.width - pattern.margin) {
-        ctx.beginPath();
-        ctx.moveTo(platform.x - scrollX + pattern.x, platform.y + pattern.startY);
-        ctx.quadraticCurveTo(
-          platform.x - scrollX + pattern.controlX,
-          platform.y + pattern.controlY,
-          platform.x - scrollX + pattern.x,
-          platform.y + pattern.endY
-        );
-        ctx.lineWidth = pattern.lineWidth;
-        ctx.stroke();
-      }
-    });
-    
-    // 保存された濃淡のパターンを描画
-    platform.shadePattern.forEach(pattern => {
-      // 左右の余白を考慮して描画
-      if (pattern.x >= pattern.margin && pattern.x <= platform.width - pattern.margin) {
-        ctx.beginPath();
-        ctx.moveTo(platform.x - scrollX + pattern.x, platform.y + pattern.startY);
-        ctx.lineTo(platform.x - scrollX + pattern.x, platform.y + pattern.endY);
-        ctx.strokeStyle = `rgba(50, 25, 0, ${pattern.opacity})`;
-        ctx.lineWidth = pattern.lineWidth;
-        ctx.stroke();
-      }
-    });
+    if (platform.isGrass) {
+      // 草むらの描画（濃い緑色）
+      ctx.fillStyle = '#228B22';
+      ctx.fillRect(platform.x - scrollX, platform.y, platform.width, platform.height);
+    } else {
+      // 通常の木目調の地面
+      ctx.fillStyle = '#D2B48C';
+      ctx.fillRect(platform.x - scrollX, platform.y, platform.width, platform.height);
+      
+      // 木目の模様
+      ctx.strokeStyle = '#654321';
+      
+      // 保存された木目のパターンを描画
+      platform.woodPattern.forEach(pattern => {
+        // 左右の余白を考慮して描画
+        if (pattern.x >= pattern.margin && pattern.x <= platform.width - pattern.margin) {
+          ctx.beginPath();
+          ctx.moveTo(platform.x - scrollX + pattern.x, platform.y + pattern.startY);
+          ctx.quadraticCurveTo(
+            platform.x - scrollX + pattern.controlX,
+            platform.y + pattern.controlY,
+            platform.x - scrollX + pattern.x,
+            platform.y + pattern.endY
+          );
+          ctx.lineWidth = pattern.lineWidth;
+          ctx.stroke();
+        }
+      });
+      
+      // 保存された濃淡のパターンを描画
+      platform.shadePattern.forEach(pattern => {
+        // 左右の余白を考慮して描画
+        if (pattern.x >= pattern.margin && pattern.x <= platform.width - pattern.margin) {
+          ctx.beginPath();
+          ctx.moveTo(platform.x - scrollX + pattern.x, platform.y + pattern.startY);
+          ctx.lineTo(platform.x - scrollX + pattern.x, platform.y + pattern.endY);
+          ctx.strokeStyle = `rgba(50, 25, 0, ${pattern.opacity})`;
+          ctx.lineWidth = pattern.lineWidth;
+          ctx.stroke();
+        }
+      });
+    }
   });
 
   // 浮遊する足場
