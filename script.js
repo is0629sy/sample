@@ -43,6 +43,11 @@ const obstacleProbability = 0.4;
 const floatingPlatformProbability = 0.35; // 浮遊する足場の生成確率を35%に下げる
 const floatingPlatformWidth = 150;
 const floatingPlatformHeight = 20;
+const minObstacleWidth = 20; // 障害物の最小幅
+const maxObstacleWidth = 50; // 障害物の最大幅
+const minObstacleHeight = 30; // 障害物の最小高さ
+const maxObstacleHeight = 60; // 障害物の最大高さ
+const maxObstacleGap = 200; // 障害物間の最大間隔（この間隔以下の場合に浮遊する足場を生成）
 
 // 浮遊する足場の最小距離
 const minFloatingPlatformDistance = 300; // 浮遊する足場同士の最小距離
@@ -82,32 +87,68 @@ function setupLevel() {
     lastPlatformX = x + platformLength;
     
     // 障害物の生成
-    // 地面の長さに応じて複数の障害物を生成
-    const obstacleCount = Math.floor(platformLength / 150); // 150pxごとに障害物を生成
+    const obstacleCount = Math.floor(platformLength / 150);
+    let lastObstacleX = null;
     for (let i = 0; i < obstacleCount; i++) {
       if (Math.random() < obstacleProbability) {
-        const obstacleX = x + 75 + (i * 150); // 150px間隔で配置
+        const obstacleX = x + 75 + (i * 150);
+        const obstacleWidth = minObstacleWidth + Math.random() * (maxObstacleWidth - minObstacleWidth);
+        const obstacleHeight = minObstacleHeight + Math.random() * (maxObstacleHeight - minObstacleHeight);
+        
+        // 前の障害物との間隔をチェック
+        if (lastObstacleX !== null && obstacleX - lastObstacleX <= maxObstacleGap) {
+          // 障害物間の上空に浮遊する足場を生成
+          const floatingY = canvas.height - groundHeight - 200 - Math.random() * 100;
+          const newPlatform = {
+            x: (lastObstacleX + obstacleX) / 2 - floatingPlatformWidth / 2,
+            y: floatingY,
+            width: floatingPlatformWidth,
+            height: floatingPlatformHeight
+          };
+          
+          if (!isOverlappingOrTooClose(newPlatform, floatingPlatforms)) {
+            createPlatform(floatingPlatforms, newPlatform.x, newPlatform.y, newPlatform.width, newPlatform.height);
+          }
+        }
+        
         obstacles.push({
           x: obstacleX,
-          y: canvas.height - groundHeight - 40,
-          width: 30,
-          height: 40,
+          y: canvas.height - groundHeight - obstacleHeight,
+          width: obstacleWidth,
+          height: obstacleHeight,
         });
+        lastObstacleX = obstacleX + obstacleWidth;
       }
     }
 
-    // 浮遊する足場の生成（地面の上と穴の上）
+    // 浮遊する足場の生成（地面の上）
     if (Math.random() < floatingPlatformProbability) {
       const floatingY = canvas.height - groundHeight - 150 - Math.random() * 100;
-      // 地面の上に生成
-      createPlatform(floatingPlatforms, x + 75, floatingY, floatingPlatformWidth, floatingPlatformHeight);
+      const newPlatform = {
+        x: x + 75,
+        y: floatingY,
+        width: floatingPlatformWidth,
+        height: floatingPlatformHeight
+      };
+      
+      if (!isOverlappingOrTooClose(newPlatform, floatingPlatforms)) {
+        createPlatform(floatingPlatforms, newPlatform.x, newPlatform.y, newPlatform.width, newPlatform.height);
+      }
     }
 
     // 穴の上にも浮遊する足場を生成
     if (Math.random() < floatingPlatformProbability) {
       const floatingY = canvas.height - groundHeight - 150 - Math.random() * 100;
-      // 穴の上に生成（最後の地面の終点から次の地面の開始位置までの間）
-      createPlatform(floatingPlatforms, lastPlatformX + 75, floatingY, floatingPlatformWidth, floatingPlatformHeight);
+      const newPlatform = {
+        x: lastPlatformX + 75,
+        y: floatingY,
+        width: floatingPlatformWidth,
+        height: floatingPlatformHeight
+      };
+      
+      if (!isOverlappingOrTooClose(newPlatform, floatingPlatforms)) {
+        createPlatform(floatingPlatforms, newPlatform.x, newPlatform.y, newPlatform.width, newPlatform.height);
+      }
     }
   }
 }
@@ -115,15 +156,18 @@ function setupLevel() {
 // 浮遊する足場の重なりと距離をチェックする関数
 function isOverlappingOrTooClose(newPlatform, existingPlatforms) {
   return existingPlatforms.some(platform => {
-    // 重なりチェック
-    const isOverlapping = (
+    // 重なりチェック（より厳密に）
+    const horizontalOverlap = (
       newPlatform.x < platform.x + platform.width &&
-      newPlatform.x + newPlatform.width > platform.x &&
+      newPlatform.x + newPlatform.width > platform.x
+    );
+    
+    const verticalOverlap = (
       newPlatform.y < platform.y + platform.height &&
       newPlatform.y + newPlatform.height > platform.y
     );
 
-    // 距離チェック
+    // 距離チェック（より厳密に）
     const centerX1 = newPlatform.x + newPlatform.width / 2;
     const centerY1 = newPlatform.y + newPlatform.height / 2;
     const centerX2 = platform.x + platform.width / 2;
@@ -134,7 +178,8 @@ function isOverlappingOrTooClose(newPlatform, existingPlatforms) {
       Math.pow(centerY2 - centerY1, 2)
     );
 
-    return isOverlapping || distance < minFloatingPlatformDistance;
+    // 水平方向または垂直方向に重なっている場合、または距離が近すぎる場合はtrueを返す
+    return (horizontalOverlap && verticalOverlap) || distance < minFloatingPlatformDistance;
   });
 }
 
@@ -174,15 +219,36 @@ function generateNewPlatform() {
     // 障害物の生成
     // 地面の長さに応じて複数の障害物を生成
     const obstacleCount = Math.floor(platformLength / 150); // 150pxごとに障害物を生成
+    let lastObstacleX = null;
     for (let i = 0; i < obstacleCount; i++) {
       if (Math.random() < obstacleProbability) {
         const obstacleX = x + 75 + (i * 150); // 150px間隔で配置
+        const obstacleWidth = minObstacleWidth + Math.random() * (maxObstacleWidth - minObstacleWidth);
+        const obstacleHeight = minObstacleHeight + Math.random() * (maxObstacleHeight - minObstacleHeight);
+        
+        // 前の障害物との間隔をチェック
+        if (lastObstacleX !== null && obstacleX - lastObstacleX <= maxObstacleGap) {
+          // 障害物間の上空に浮遊する足場を生成
+          const floatingY = canvas.height - groundHeight - 200 - Math.random() * 100;
+          const newPlatform = {
+            x: (lastObstacleX + obstacleX) / 2 - floatingPlatformWidth / 2,
+            y: floatingY,
+            width: floatingPlatformWidth,
+            height: floatingPlatformHeight
+          };
+          
+          if (!isOverlappingOrTooClose(newPlatform, floatingPlatforms)) {
+            createPlatform(floatingPlatforms, newPlatform.x, newPlatform.y, newPlatform.width, newPlatform.height);
+          }
+        }
+        
         obstacles.push({
           x: obstacleX,
-          y: canvas.height - groundHeight - 40,
-          width: 30,
-          height: 40,
+          y: canvas.height - groundHeight - obstacleHeight,
+          width: obstacleWidth,
+          height: obstacleHeight,
         });
+        lastObstacleX = obstacleX + obstacleWidth;
       }
     }
 
