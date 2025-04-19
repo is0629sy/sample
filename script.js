@@ -129,11 +129,14 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Space') {
     if (!gameStarted) {
       gameStarted = true;
+      document.getElementById('startScreen').style.display = 'none';
       setupLevel();
     } else if (gameOver) {
       // ゲームオーバー時にスペースキーを押したらリセット
       gameOver = false;
       gameStarted = false;
+      document.getElementById('gameOverScreen').style.display = 'none';
+      document.getElementById('startScreen').style.display = 'block';
       player.y = canvas.height - 150;
       player.dy = 0;
       scrollX = 0;
@@ -155,11 +158,14 @@ canvas.addEventListener('touchstart', (e) => {
   e.preventDefault(); // デフォルトのタッチ動作を防止
   if (!gameStarted) {
     gameStarted = true;
+    document.getElementById('startScreen').style.display = 'none';
     setupLevel();
   } else if (gameOver) {
     // ゲームオーバー時にタップしたらリセット
     gameOver = false;
     gameStarted = false;
+    document.getElementById('gameOverScreen').style.display = 'none';
+    document.getElementById('startScreen').style.display = 'block';
     player.y = canvas.height - 150;
     player.dy = 0;
     scrollX = 0;
@@ -226,7 +232,10 @@ function update() {
       gameOver = true;
       if (score > highScore) {
         highScore = score;
+        document.getElementById('highScoreDisplay').textContent = `ハイスコア: ${highScore}`;
       }
+      document.getElementById('gameOverScreen').style.display = 'block';
+      document.getElementById('finalScore').textContent = `スコア: ${score}`;
     }
   }
 
@@ -235,11 +244,15 @@ function update() {
     gameOver = true;
     if (score > highScore) {
       highScore = score;
+      document.getElementById('highScoreDisplay').textContent = `ハイスコア: ${highScore}`;
     }
+    document.getElementById('gameOverScreen').style.display = 'block';
+    document.getElementById('finalScore').textContent = `スコア: ${score}`;
   }
 
   // スコア更新（進んだ距離に比例）
   score = Math.floor(scrollX / 10);
+  document.getElementById('scoreDisplay').textContent = `スコア: ${score}`;
   scrollX += scrollSpeed;
 
   // 新しいプラットフォームの生成
@@ -251,28 +264,14 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (!gameStarted) {
-    ctx.fillStyle = 'black';
-    ctx.font = '48px sans-serif';
-    ctx.fillText('スペースキーでスタート！', canvas.width / 2 - 200, canvas.height / 2);
+    // スタート画面はHTMLで表示するため、ここでは何も描画しない
     return;
   }
 
   if (gameOver) {
-    ctx.fillStyle = 'black';
-    ctx.font = '48px sans-serif';
-    ctx.fillText('ゲームオーバー', canvas.width / 2 - 130, canvas.height / 2);
-    ctx.font = '24px sans-serif';
-    ctx.fillText(`スコア: ${score}`, canvas.width / 2 - 50, canvas.height / 2 + 50);
-    ctx.fillText(`ハイスコア: ${highScore}`, canvas.width / 2 - 70, canvas.height / 2 + 100);
-    ctx.fillText('スペースキーで再スタート', canvas.width / 2 - 200, canvas.height / 2 + 150);
+    // ゲームオーバー画面はHTMLで表示するため、ここでは何も描画しない
     return;
   }
-
-  // スコア表示
-  ctx.fillStyle = 'black';
-  ctx.font = '24px sans-serif';
-  ctx.fillText(`スコア: ${score}`, 20, 30);
-  ctx.fillText(`ハイスコア: ${highScore}`, 20, 60);
 
   // 地面
   groundPlatforms.forEach(platform => {

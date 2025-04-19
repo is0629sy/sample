@@ -11,32 +11,55 @@
       padding: 0;
       overflow: hidden;
       touch-action: none;
+      background-color: #f0f0f0;
     }
     canvas {
       display: block;
     }
-    #startScreen, #gameOverScreen {
-      position: fixed;
+    #startScreen {
+      position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       text-align: center;
-      font-size: clamp(16px, 4vw, 24px);
-      white-space: nowrap;
+      font-size: 24px;
+      font-family: sans-serif;
+      color: #000;
+      z-index: 1;
     }
     #gameOverScreen {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      font-size: 24px;
+      font-family: sans-serif;
+      color: #000;
+      z-index: 1;
       display: none;
+    }
+    #scoreDisplay {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 20px;
+      font-family: sans-serif;
+      color: #000;
+      z-index: 1;
     }
   </style>
 </head>
 <body>
-  <div id="startScreen">タップでスタート</div>
+  <div id="startScreen">スペースキーでスタート</div>
   <canvas id="gameCanvas"></canvas>
+  <div id="scoreDisplay"></div>
   <div id="gameOverScreen">
     <div>ゲームオーバー！</div>
-    <div>タップで再挑戦</div>
+    <div id="finalScore">スコア: 0</div>
+    <div id="highScoreDisplay">ハイスコア: 0</div>
+    <div>スペースキーで再挑戦</div>
   </div>
   <script src="script.js"></script>
 </body>
 </html>
-// test
