@@ -329,6 +329,9 @@ function update() {
       if (score > highScore) {
         highScore = score;
         document.getElementById('highScoreDisplay').textContent = `ハイスコア: ${highScore}`;
+        document.getElementById('newHighScoreMessage').style.display = 'block';
+      } else {
+        document.getElementById('newHighScoreMessage').style.display = 'none';
       }
       document.getElementById('gameOverScreen').style.display = 'block';
       document.getElementById('finalScore').textContent = `スコア: ${score}`;
@@ -341,6 +344,9 @@ function update() {
     if (score > highScore) {
       highScore = score;
       document.getElementById('highScoreDisplay').textContent = `ハイスコア: ${highScore}`;
+      document.getElementById('newHighScoreMessage').style.display = 'block';
+    } else {
+      document.getElementById('newHighScoreMessage').style.display = 'none';
     }
     document.getElementById('gameOverScreen').style.display = 'block';
     document.getElementById('finalScore').textContent = `スコア: ${score}`;
