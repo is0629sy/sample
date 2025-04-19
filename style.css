@@ -6,6 +6,6 @@ body {
   
   canvas {
     display: block;
-    background: linear-gradient(#5c94fc, #ffffff);
+    background: linear-gradient(to bottom, #fff000, #d0f0a0, #c0f8ff);
   }
   
