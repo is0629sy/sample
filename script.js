@@ -348,6 +348,8 @@ window.addEventListener('keydown', (e) => {
       player.y = canvas.height - 150;
       player.dy = 0;
       scrollX = 0;
+      // 背景色をリセット
+      document.body.classList.remove('high-score');
     } else if (!gameOver && player.jumpCount < 2) {
       player.dy = player.jumpPower;
       player.grounded = false;
@@ -377,6 +379,8 @@ canvas.addEventListener('touchstart', (e) => {
     player.y = canvas.height - 150;
     player.dy = 0;
     scrollX = 0;
+    // 背景色をリセット
+    document.body.classList.remove('high-score');
   } else if (!gameOver && player.jumpCount < 2) {
     player.dy = player.jumpPower;
     player.grounded = false;
@@ -495,6 +499,7 @@ function update() {
     }
     document.getElementById('gameOverScreen').style.display = 'block';
     document.getElementById('finalScore').textContent = `スコア: ${score}`;
+    // 背景色は保持する（リセットしない）
   }
 
   // スコア更新（進んだ距離に比例）

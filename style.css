@@ -9,6 +9,10 @@ body.high-score {
     background: linear-gradient(to bottom, #3d5a80, #7b88c4, #fbb9a9, #f58c42);
 }
 
+#gameOverScreen {
+    color: white;
+}
+
 #gradientBackground {
     position: fixed;
     top: 0;
