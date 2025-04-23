@@ -587,7 +587,7 @@ function draw() {
 
   // 浮遊する足場
   floatingPlatforms.forEach(platform => {
-    ctx.fillStyle = 'brown';
+    ctx.fillStyle = '#e63e7a';
     ctx.fillRect(platform.x - scrollX, platform.y, platform.width, platform.height);
   });
 
