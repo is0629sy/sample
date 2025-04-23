@@ -73,6 +73,13 @@ let scrollX = 0;
 const groundPlatforms = [];
 const floatingPlatforms = [];
 const obstacles = [];
+const clouds = []; // 雲の配列を追加
+
+// 雲の設定
+const cloudImage = new Image();
+cloudImage.src = 'img/cloud.png';
+const cloudSpawnInterval = 4000; // 雲の生成間隔を2倍に（2000から4000に変更）
+let lastCloudSpawn = 0;
 
 // ===== プラットフォーム生成関数 =====
 function createPlatform(arr, x, y, width, height) {
@@ -408,6 +415,8 @@ function isColliding(a, b) {
 function update() {
   if (!gameStarted || gameOver) return;
 
+  updateClouds(); // 雲の更新を追加
+
   // スコアに応じてスクロール速度を更新
   const speedMultiplier = 1 + Math.min(Math.floor(score / speedIncreaseInterval) * 0.1, (maxScrollSpeed - baseScrollSpeed) / baseScrollSpeed);
   scrollSpeed = baseScrollSpeed * speedMultiplier;
@@ -525,6 +534,11 @@ function draw() {
     return;
   }
 
+  // 雲の描画
+  clouds.forEach(cloud => {
+    ctx.drawImage(cloudImage, cloud.x, cloud.y, cloud.width, cloud.height);
+  });
+
   // 地面
   groundPlatforms.forEach(platform => {
     if (platform.isGrass) {
@@ -617,4 +631,32 @@ function startGame() {
     init();
     gameStarted = true;
     // ... existing code ...
+}
+
+// 雲の生成関数
+function createCloud() {
+  const cloud = {
+    x: canvas.width + Math.random() * 100, // 画面右端からランダムな位置で生成
+    y: Math.random() * (canvas.height * 0.3), // 画面上部30%の範囲内でランダムな高さ
+    width: 150 + Math.random() * 75, // 雲の幅を1.5倍に（100から150に、50から75に）
+    height: 75 + Math.random() * 45, // 雲の高さを1.5倍に（50から75に、30から45に）
+  };
+  clouds.push(cloud);
+}
+
+// 雲の更新関数
+function updateClouds() {
+  const currentTime = Date.now();
+  if (currentTime - lastCloudSpawn > cloudSpawnInterval) {
+    createCloud();
+    lastCloudSpawn = currentTime;
+  }
+
+  // 雲の移動と削除
+  clouds.forEach((cloud, index) => {
+    cloud.x -= baseScrollSpeed; // スクロール速度と同じ速さで移動
+    if (cloud.x + cloud.width < 0) {
+      clouds.splice(index, 1);
+    }
+  });
 }
