@@ -2,11 +2,15 @@ body {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background: linear-gradient(to bottom, #fff000, #d0f0a0, #c0f8ff);
+    background-image: url('img/bg-1.png');
+    background-size: cover;
+    background-position: center;
 }
 
 body.high-score {
-    background: linear-gradient(to bottom, #3d5a80, #7b88c4, #fbb9a9, #f58c42);
+    background-image: url('img/bg-2.png');
+    background-size: cover;
+    background-position: center;
 }
 
 #gameOverScreen {
@@ -20,7 +24,9 @@ body.high-score {
     width: 100%;
     height: 100%;
     z-index: 0;
-    background: linear-gradient(to bottom, #3d5a80, #7b88c4, #fbb9a9, #f58c42);
+    background-image: url('img/bg-2.png');
+    background-size: cover;
+    background-position: center;
     opacity: 0;
     transition: opacity 1s ease-in-out;
 }
