@@ -630,6 +630,7 @@ function init() {
 function startGame() {
     init();
     gameStarted = true;
+    // document.getElementById('logo').style.display = 'block'; // ロゴを表示する行を削除
     // ... existing code ...
 }
 
